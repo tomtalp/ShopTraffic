@@ -3,10 +3,15 @@ import json
 import datetime
 import random
 import uuid
+import devices
+
+DEVICES = devices.devices
 
 def get_hour_weight(hour):
     """
-    Give every hour range a differetn weight, so that we can replicate real
+    A very simplistic way of giving every hour a different statistical weight.
+
+    Give every hour range a different weight, so that we can replicate real
     customer data more accurately
     """
     if hour <= 8 or hour >= 22:
@@ -75,6 +80,10 @@ def get_random_mac_addr():
     """
     return str(uuid.uuid4())
 
+def get_random_device():
+    devices_count = len(DEVICES)
+    return DEVICES[random.randint(0, devices_count - 1)]
+
 def get_user_data():
 
     random_dates = customer_dates_generator()
@@ -82,7 +91,8 @@ def get_user_data():
         "mac_addr": get_random_mac_addr(),
         "first_seen": str(random_dates["first_seen"]),
         "last_seen": str(random_dates["last_seen"]),
-        "insertion_time": str(datetime.datetime.now())
+        "insertion_time": str(datetime.datetime.now()),
+        "device_type": get_random_device()
     }
     return data
 
@@ -92,7 +102,6 @@ stream = "is_hackathon_tom.public.atom_wifi_data"
 
 for i in xrange(100000):
     data = get_user_data()
-    # print "Data to be inserted - " + str(data)
 
     r = client.put_event(stream=stream, data=json.dumps(data), method="post")
     if r.status_code != 200:
